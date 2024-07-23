@@ -53,7 +53,7 @@ def convert():
     success = True
     match language:
         case 'simplified_cn':
-            result = language_converter.convert_mandarin(text)
+            result = convert_mandarin(text)
         case _:
             result = text
             success = False
