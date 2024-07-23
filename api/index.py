@@ -1,7 +1,6 @@
 from flask import Flask, render_template, jsonify, request
 from flask_cors import CORS
 import chardet
-import language_converter  # Ensure language_converter is correctly implemented
 
 app = Flask(__name__)
 CORS(app)
@@ -24,6 +23,22 @@ def detect():
     text = data['text']
     result = chardet.detect(text.encode('latin-1'))
     return jsonify(result)
+
+############################################
+#       Language Conversion Functions      #
+############################################
+
+def convert_mandarin(text: str):
+    """
+    Convert the provided text from garbled Chinese simplified to readable Chinese simplified
+    Returns: String of the converted text
+    """
+    cp936_bytes = text.encode('latin-1')  # Encode to bytes using latin-1
+    utf16_bytes = cp936_bytes.decode('cp936').encode('utf-16')  # Decode CP936 and encode to UTF-16
+    result = utf16_bytes.decode('utf-16')
+    return result
+
+#############################################
 
 @app.route('/api/convert', methods=['POST'])
 def convert():
