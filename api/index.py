@@ -1,6 +1,9 @@
 from flask import Flask, render_template, jsonify, request
 from flask_cors import CORS
-import chardet
+
+# https://github.com/rspeer/python-ftfy
+# ftfy is Licensed under the Apache License, Version 2.0
+import ftfy
 
 app = Flask(__name__)
 CORS(app)
@@ -11,18 +14,6 @@ def index():
     Render the index.html template
     """
     return render_template('index.html')
-
-@app.route('/api/detect', methods=['POST'])
-def detect():
-    """
-    Detect the encoding of the provided text
-    Returns: JSON object of all possible encodings and their confidence
-    """
-    # Stub: TODO
-    data = request.get_json()
-    text = data['text']
-    result = chardet.detect(text.encode('latin-1'))
-    return jsonify(result)
 
 ############################################
 #       Language Conversion Functions      #
@@ -105,8 +96,9 @@ def convert():
         case 'simplified_cn':
             results = convert_simplified_cn(text, error_mode=error_mode)
         case 'japanese':
-            print("JP")
             results = convert_japanese(text, error_mode=error_mode)
+        case 'ftfy':
+            results = [('"fixes text for you" conversion', ftfy.fix_text(text))]
         case _:
             results = text
             success = False

@@ -38,6 +38,7 @@
                     <select id="language" name="language" class="w-full p-3">
                         <option value="simplified_cn">Simplified Chinese</option>
                         <option value="japanese">Japanese</option>
+                        <option value="ftfy">ftfy - Runs python-ftfy on input. May be good for corrupted symbols</option>
                     </select>
                 </div>
             </div>
@@ -57,7 +58,10 @@
             </div>
             <button type="button" id="convertBtn" class="w-full bg-pink-600 text-white rounded-md py-3 mt-6 hover:bg-pink-700">Convert</button>
         </form>
-            <p class="text-center text-gray-500 text-sm mt-4">Due to incorrect encode/decode, some data may be irrecoverable</p>
+            <footer class="text-center text-gray-500 text-sm mt-4">
+                <p>Due to incorrect encode/decode, some data may be irrecoverable</p>
+                <a class="text-center text-sm hover:underline" href="https://github.com/pinapelz/mojibaka/">Source</a>
+            </footer>
         <!-- Display converted text -->
         <div id="conversionResult" class="mt-8 hidden">
             <h5 class="text-xl font-semibold">Converted Texts</h5>
