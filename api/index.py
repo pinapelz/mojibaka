@@ -1,5 +1,6 @@
 from flask import Flask, render_template, jsonify, request
 from flask_cors import CORS
+from openai import OpenAI
 
 # https://github.com/rspeer/python-ftfy
 # ftfy is Licensed under the Apache License, Version 2.0
@@ -77,6 +78,23 @@ def convert_japanese(text: str, error_mode: str='replace') -> list:
     except (UnicodeDecodeError, UnicodeEncodeError):
         print("JP: Error converting sjis to utf-8")
     return results
+
+
+def ai_decode(text: str, api_key: str) -> str:
+    """
+    Attempt to use AI to decode the provided text
+    """
+    client = OpenAI(api_key=api_key)
+    messages = [{"role": "user", "content": "The following text is corrupted due to encode/decode errors. Reply with the corrected readable text: " + text}]
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages,
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
 
 #############################################
 
