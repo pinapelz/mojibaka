@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mojibaka AI</title>
+    <meta name="description" content="A tool that can help fix corrupted characters due to incorrect encoding/decoding and other sorts of mojibake (Supports Simplified Chinese, Japanese, and more! )">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        textarea, p {
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-5">
+    <div class="bg-white rounded-lg shadow-lg p-10 max-w-2xl w-full">
+        <h1 class="text-3xl font-bold text-center text-pink-500">Mojibaka AI ~</h1>
+        <h2 class="text-xl text-center text-pink-400">Fix incorrectly encoded texts using AI. You baka...</h2>
+        <h2 class="text-lg text-center text-pink-300 hover:underline"><a href="/">Non-AI Version</a></h2>
+        <div class="flex justify-center mb-4 mt-2">
+            <img class="rounded-md max-w-full max-h-48" src="https://files.catbox.moe/2dd9nk.gif"/>
+        </div>
+        <form id="convertForm" class="space-y-6">
+            <div>
+                <label for="garbledText" class="block text-gray-700 font-medium mb-2">Enter Garbled Text:</label>
+                <textarea id="garbledText" name="text" class="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-500" rows="6" required></textarea>
+            </div>
+            <div>
+                <label for="aiOption" class="block text-gray-700 font-medium mb-2">AI Option:</label>
+                <div class="select-container">
+                    <select id="aiOption" name="ai_option" class="w-full p-3">
+                        <option value="openai_gpt4">OpenAI GPT-4o</option>
+                        <option value="gpt4free">GPT4Free - (No API Key but not very good)</option>
+                    </select>
+                </div>
+            </div>
+            <div id="apiKeyContainer">
+                <label for="apiKey" class="block text-gray-700 font-medium mb-2">API Key:</label>
+                <input type="text" id="apiKey" name="api_key" class="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-blue-500" required>
+            </div>
+            <button type="button" id="convertBtn" class="w-full bg-pink-600 text-white rounded-md py-3 mt-6 hover:bg-pink-700">Convert</button>
+        </form>
+        <footer class="text-center text-gray-500 text-sm mt-4">
+            <p>Due to incorrect encode/decode, some data may be irrecoverable</p>
+            <a class="text-center text-sm hover:underline" href="https://github.com/pinapelz/mojibaka/">Source</a>
+        </footer>
+        <!-- Display converted text -->
+        <div id="conversionResult" class="mt-8 hidden">
+            <h5 class="text-xl font-semibold">Converted Text</h5>
+            <p id="convertedText" class="bg-gray-100 p-3 rounded-md"></p>
+        </div>
+    </div>
+    <script>
+        document.getElementById('aiOption').addEventListener('change', function() {
+            const apiKeyContainer = document.getElementById('apiKeyContainer');
+            if (this.value === 'gpt4free') {
+                apiKeyContainer.style.display = 'none';
+            } else {
+                apiKeyContainer.style.display = 'block';
+            }
+        });
+
+        document.getElementById('convertBtn').addEventListener('click', function() {
+            const formData = {
+                text: document.getElementById('garbledText').value,
+                model: document.getElementById('aiOption').value,
+                api: document.getElementById('aiOption').value === 'gpt4free' ? '' : document.getElementById('apiKey').value
+            };
+
+            fetch('/api/ai', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const convertedText = document.getElementById('convertedText');
+                convertedText.textContent = data.result;
+                document.getElementById('conversionResult').classList.remove('hidden');
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+                alert('Conversion failed. Please try again later.');
+            });
+        });
+    </script>
+</body>
+</html>

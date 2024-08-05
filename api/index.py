@@ -1,6 +1,7 @@
 from flask import Flask, render_template, jsonify, request
 from flask_cors import CORS
 from openai import OpenAI
+from g4f.client import Client
 
 # https://github.com/rspeer/python-ftfy
 # ftfy is Licensed under the Apache License, Version 2.0
@@ -15,6 +16,14 @@ def index():
     Render the index.html template
     """
     return render_template('index.html')
+
+@app.route('/ai')
+def ai_index():
+    """
+    Render the ai_decode.html template
+    Used for using LLMs to decode garbled text
+    """
+    return render_template('ai_decode.html')
 
 ############################################
 #       Language Conversion Functions      #
@@ -80,21 +89,34 @@ def convert_japanese(text: str, error_mode: str='replace') -> list:
     return results
 
 
-def ai_decode(text: str, api_key: str) -> str:
+def open_ai_decode(text: str, api_key: str) -> str:
     """
-    Attempt to use AI to decode the provided text
+    Attempt to use OpenAI to decode the provided text
     """
+    print("GPT4 Decode")
     client = OpenAI(api_key=api_key)
-    messages = [{"role": "user", "content": "The following text is corrupted due to encode/decode errors. Reply with the corrected readable text: " + text}]
+    messages = [{"role": "user", "content": "The following text is corrupted due to using the wrong encoding/decoding format. Reply with the corrected readable text. Corrupted Text: " + text}]
+    print(messages)
     try:
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=messages,
         )
+        print(response.choices[0])
         return response.choices[0].message.content
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
+
+def g4f_ai_decode(text: str) -> str:
+    """
+    Attempt to use GPT4Free to decode the provided text
+    """
+    client = Client()
+    response = client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[{"role": "user", "content": "The following text is corrupted due to using the wrong encoding/decoding format. Reply with the corrected readable text. Corrupted Text: " + text}])
+    return response.choices[0].message.content
 
 #############################################
 
@@ -121,6 +143,29 @@ def convert():
             results = text
             success = False
     return jsonify({'data': results, 'success': success})
+
+@app.route('/api/ai', methods=['POST'])
+def convert_ai():
+    """
+    Use AI to decode the garbled text
+    Returns: JSON object with the converted text
+    """
+    data = request.get_json()
+    text = data['text']
+    model = data['model']
+    api_key = data['api']
+    # Default to simplified Chinese if language is not provided
+    success = True
+    match model:
+        case 'openai_gpt4':
+            result = open_ai_decode(text, api_key)
+        case 'gpt4free':
+            result = g4f_ai_decode(text)
+        case _:
+            success = False
+            result = text
+    return jsonify({'result': result, 'success': success})
+
 
 if __name__ == "__main__":
     app.run(debug=True)
